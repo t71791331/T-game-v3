@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer utilities {
+  .text-outline-white {
+    text-shadow: 
+      -1px -1px 0 #fff,  
+       1px -1px 0 #fff,
+      -1px  1px 0 #fff,
+       1px  1px 0 #fff;
+  }
+}
+
+body {
+  margin: 0;
+  background-color: black;
+  color: #D4AF37; /* Золотой по умолчанию */
+}

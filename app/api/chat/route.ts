@@ -5,12 +5,12 @@ export async function POST(req: Request) {
     const { answer, history, availableCards, isFinal } = await req.json();
 
     const prompt = isFinal 
-      ? `Это финал игры. Проанализируй эти 5 ответов игрока: ${JSON.stringify(history)}. Дай глубокое психологическое заключение о его состоянии и 3 кратких совета.`
-      : `Ты - ИИ-психолог в игре. Игрок ответил: "${answer}". 
-         1. Дай короткую (1-2 фразы) поддержку. 
-         2. Выбери из списка ID следующей карты, которая лучше всего дополнит ситуацию.
-         Список: ${JSON.stringify(availableCards.map((c:any) => ({id: c.id, q: c.question})))}
-         Ответь ТОЛЬКО в формате JSON: {"comment": "текст", "nextCardId": номер}`;
+      ? `Это финал трансформационной игры. Проанализируй 5 ответов игрока: ${JSON.stringify(history)}. Напиши глубокое психологическое заключение и дай совет на будущее.`
+      : `Ты — проводник в психологической игре. Игрок ответил: "${answer}". 
+         1. Напиши короткую поддерживающую фразу. 
+         2. Выбери из списка ниже ОДИН ID следующей карты, которая лучше всего подходит к контексту.
+         ВАЖНО: Выбирай ТОЛЬКО из этого списка (эти карты еще не использовались): ${JSON.stringify(availableCards.map((c:any) => ({id: c.id, q: c.question})))}
+         Ответь ТОЛЬКО в формате JSON: {"comment": "фраза", "nextCardId": номер}`;
 
     const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -30,6 +30,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result);
   } catch (e) {
-    return NextResponse.json({ comment: "Ошибка сервера" }, { status: 500 });
+    return NextResponse.json({ comment: "Ошибка проводника" }, { status: 500 });
   }
 }

@@ -160,4 +160,25 @@ export default function Game() {
               
               <div style={{ width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {history.map((step, i) => (
-                  <div key={i} style={{ backgroundColor: 'rgba(255
+                  <div key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', borderLeft: `4px solid ${goldColor}` }}>
+                    <p style={{ color: goldColor, fontSize: '0.85rem', fontWeight: 'bold' }}>ШАГ {i + 1}: {step.question}</p>
+                    <p style={{ color: 'white', marginBottom: '5px' }}>— {step.answer}</p>
+                    <p style={{ color: '#aaa', fontSize: '0.9rem', fontStyle: 'italic' }}>Проводник: {step.comment}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ width: '100%', backgroundColor: 'rgba(212,175,55,0.1)', padding: '25px', borderRadius: '20px', border: `1px solid ${goldColor}`, color: 'white', marginTop: '10px' }}>
+                <h3 style={{ color: goldColor, marginBottom: '10px', fontSize: '1.1rem' }}>ИТОГОВЫЙ АНАЛИЗ:</h3>
+                <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{finalAnalysis}</p>
+              </div>
+
+              <button onClick={() => window.location.reload()} style={btnStyle}>Начать заново</button>
+            </div>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}

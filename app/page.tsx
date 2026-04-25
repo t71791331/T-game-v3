@@ -33,12 +33,9 @@ export default function Game() {
   const [loading, setLoading] = useState(false);
   const [finalAnalysis, setFinalAnalysis] = useState('');
 
-  // Стили для золотых элементов
-  const goldText = "text-[#D4AF37] shadow-sm"; 
-  const goldButton = "bg-[#D4AF37] text-black hover:text-white transition-all duration-300 shadow-[0_0_15px_rgba(212,175,55,0.3)] hover:shadow-[0_0_25px_rgba(212,175,55,0.6)]";
+  const glowEffect = "transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,215,0,0.4)] hover:scale-[1.02] active:scale-[0.98]";
 
   const handleNextStep = async () => {
-    if (!answer) return;
     setLoading(true);
     try {
       const response = await fetch('/api/chat', {
@@ -66,87 +63,78 @@ export default function Game() {
         setAnswer('');
       }
     } catch (e) {
-      alert("Ошибка проводника.");
+      alert("Ошибка проводника. Попробуйте еще раз.");
     }
     setLoading(false);
   };
 
-  return (
-    // Главный контейнер на весь экран
-    <div className="min-h-screen w-full flex items-center justify-center bg-black overflow-hidden">
-      
-      {/* Игровое окно: на 20% меньше экрана, сжатый фон внутри */}
-      <div className="relative w-[80vw] h-[80vh] rounded-[2.5rem] overflow-hidden border border-yellow-900/30 shadow-2xl flex flex-col items-center justify-center">
-        
-        {/* Картинка бэкграунда, сжатая до размеров окна */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center z-0" 
-          style={{backgroundImage: "url('/bg.jpg')"}}
-        />
-
-        {/* Контент поверх фона */}
-        <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-8 bg-black/40 backdrop-blur-sm">
-          
-          {gameState === 'welcome' && (
-            <div className="text-center">
-              <h1 className={`text-4xl font-serif mb-8 ${goldText}`}>Добро пожаловать в игру!</h1>
-              <button 
-                onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }}
-                className={`px-12 py-4 rounded-2xl font-bold uppercase tracking-widest ${goldButton}`}
-              >
-                Выбрать карту
-              </button>
-            </div>
-          )}
-
-          {gameState === 'playing' && currentCard && (
-            <div className="flex flex-col items-center w-full max-w-xl">
-              <img 
-                src={currentCard.image} 
-                alt="Карта" 
-                className="h-[35vh] w-auto object-contain rounded-2xl mb-6 border border-yellow-500/20 shadow-lg" 
-              />
-              
-              {/* Вопрос: центр, под картой, золотой */}
-              <h2 className={`text-xl font-serif text-center mb-6 leading-snug px-4 ${goldText}`}>
-                {currentCard.question}
-              </h2>
-
-              {/* Окно ввода: под вопросом, центр, закруглено */}
-              <textarea 
-                className="w-full max-w-md bg-black/60 rounded-[1.5rem] p-4 text-white border border-yellow-900/40 focus:border-[#D4AF37] outline-none h-24 resize-none mb-6 text-center"
-                placeholder="Ваш ответ..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
-
-              {/* Кнопка: под вводом, центр, золотая, текст черный -> белый */}
-              <button 
-                disabled={loading || !answer}
-                onClick={handleNextStep}
-                className={`w-full max-w-xs py-4 rounded-[1.2rem] font-bold uppercase tracking-wider ${goldButton} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                {loading ? "Считываю..." : "Продолжить"}
-              </button>
-            </div>
-          )}
-
-          {gameState === 'final' && (
-            <div className="w-full max-w-2xl text-center overflow-y-auto px-4">
-              <h2 className={`text-3xl font-serif mb-6 ${goldText}`}>Ваше откровение</h2>
-              <div className="bg-black/50 p-6 rounded-[2rem] border border-yellow-600/20 text-blue-50 mb-8">
-                <p className="whitespace-pre-wrap">{finalAnalysis}</p>
-              </div>
-              <button 
-                onClick={() => window.location.reload()}
-                className={`px-10 py-4 rounded-2xl font-bold ${goldButton}`}
-              >
-                Начать заново
-              </button>
-            </div>
-          )}
+  if (gameState === 'welcome') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cover bg-center" style={{backgroundImage: "url('/bg.jpg')"}}>
+        <div className="bg-black/70 p-12 rounded-3xl backdrop-blur-md text-center border border-yellow-900/50 max-w-lg mx-4">
+          <h1 className="text-4xl font-serif text-yellow-200 mb-4">Добро пожаловать в игру!</h1>
+          <p className="text-blue-100 mb-8 italic">Раскройте тайны своего подсознания через символы и ответы.</p>
+          <button 
+            onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }}
+            className={`bg-yellow-700 text-white px-10 py-4 rounded-full font-bold uppercase tracking-widest ${glowEffect}`}
+          >
+            Выбрать карту
+          </button>
         </div>
       </div>
+    );
+  }
+
+  if (gameState === 'final') {
+    return (
+      <div className="min-h-screen py-12 bg-cover bg-fixed overflow-y-auto" style={{backgroundImage: "url('/bg.jpg')"}}>
+        <div className="max-w-2xl mx-auto bg-black/80 p-8 rounded-3xl backdrop-blur-xl border border-yellow-600/30 text-white shadow-2xl">
+          <h2 className="text-3xl font-serif text-yellow-400 mb-8 text-center">Ваше откровение</h2>
+          <div className="space-y-6 mb-10">
+            {history.map((item, i) => (
+              <div key={i} className="p-4 bg-white/5 rounded-xl border-l-4 border-yellow-700">
+                <p className="text-xs text-yellow-500 uppercase font-bold mb-1">Вопрос {i+1}</p>
+                <p className="text-gray-300 italic mb-2">«{item.answer}»</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 p-6 rounded-2xl border border-blue-500/30">
+            <h3 className="text-xl font-bold mb-4 text-blue-200">Анализ проводника:</h3>
+            <p className="leading-relaxed text-blue-50 whitespace-pre-wrap">{finalAnalysis}</p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className={`mt-10 w-full bg-gray-800 py-4 rounded-xl font-bold hover:bg-gray-700 ${glowEffect}`}
+          >
+            Начать новое путешествие
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-cover bg-fixed p-4" style={{backgroundImage: "url('/bg.jpg')"}}>
+      {currentCard && (
+        <div className="max-w-md w-full bg-black/60 p-8 rounded-[2rem] backdrop-blur-xl border border-white/10 shadow-2xl text-center">
+          <div className="text-yellow-600 text-xs font-black tracking-[0.3em] mb-4">ЭТАП {history.length + 1} / 5</div>
+          <img src={currentCard.image} alt="Карта" className="w-full h-72 object-cover rounded-2xl mb-6 border border-yellow-500/20" />
+          <h2 className="text-xl text-white font-serif mb-6 leading-snug">{currentCard.question}</h2>
+          <textarea 
+            className="w-full bg-black/40 rounded-xl p-4 text-white placeholder-gray-500 focus:ring-1 focus:ring-yellow-600 outline-none mb-6 h-32 resize-none border border-white/5"
+            placeholder="Опишите ваши чувства..."
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+          />
+          <button 
+            disabled={loading || !answer}
+            onClick={handleNextStep}
+            className={`w-full py-4 rounded-xl font-bold text-white uppercase tracking-wider ${loading ? 'bg-gray-700' : 'bg-yellow-800'} ${glowEffect}`}
+          >
+            {loading ? "Считываю знаки..." : "Продолжить"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

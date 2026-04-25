@@ -33,9 +33,7 @@ export default function Game() {
   const [loading, setLoading] = useState(false);
   const [finalAnalysis, setFinalAnalysis] = useState('');
 
-  // Общие стили
-  const goldColor = "text-[#D4AF37]";
-  const goldBtn = "bg-[#D4AF37] text-black font-bold py-3 px-8 rounded-2xl transition-all duration-300 hover:text-outline-white hover:shadow-[0_0_20px_rgba(212,175,55,0.6)]";
+  const goldColor = "#D4AF37";
 
   const handleNextStep = async () => {
     if (!answer) return;
@@ -49,7 +47,6 @@ export default function Game() {
       const data = await response.json();
       const updatedHistory = [...history, { question: currentCard.question, answer, comment: data.comment }];
       setHistory(updatedHistory);
-
       if (updatedHistory.length === 5) {
         setFinalAnalysis(data.comment);
         setGameState('final');
@@ -58,53 +55,78 @@ export default function Game() {
         setCurrentCard(CARDS.find(c => c.id === nextCardId));
         setAnswer('');
       }
-    } catch (e) { alert("Ошибка связи..."); }
+    } catch (e) { alert("Ошибка..."); }
     setLoading(false);
   };
 
-  return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-black overflow-x-hidden">
-      {/* Окно по размеру бэкграунда */}
-      <div className="relative w-full max-w-[1200px] aspect-video flex flex-col items-center justify-center bg-cover bg-center shadow-2xl" style={{backgroundImage: "url('/bg.jpg')"}}>
-        
-        {/* Затемнение фона для читаемости */}
-        <div className="absolute inset-0 bg-black/40 z-0"></div>
+  const btnStyle = {
+    backgroundColor: goldColor,
+    color: 'black',
+    padding: '12px 30px',
+    borderRadius: '20px',
+    fontWeight: 'bold',
+    cursor: 'pointer',
+    border: 'none',
+    transition: '0.3s'
+  };
 
-        {/* Контентная область - все друг под другом */}
-        <div className="relative z-10 flex flex-col items-center justify-center gap-6 w-full max-w-2xl px-4 text-center">
+  return (
+    <div style={{ minHeight: '100-vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor }}>
+      <div style={{ 
+        position: 'relative', 
+        width: '100%', 
+        maxWidth: '1000px', 
+        aspectRatio: '16/9', 
+        backgroundImage: "url('/bg.jpg')", 
+        backgroundSize: 'cover', 
+        backgroundPosition: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)' }}></div>
+
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%', maxWidth: '600px', padding: '20px', textAlign: 'center' }}>
           
           {gameState === 'welcome' && (
             <>
-              <h1 className={`text-4xl font-serif ${goldColor}`}>Добро пожаловать в игру!</h1>
-              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} className={goldBtn}>
-                Выбрать карту
+              <h1 style={{ fontSize: '2.5rem', margin: 0 }}>Добро пожаловать в игру!</h1>
+              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>
+                ВЫБРАТЬ КАРТУ
               </button>
             </>
           )}
 
           {gameState === 'playing' && currentCard && (
             <>
-              <img src={currentCard.image} alt="Карта" className="w-64 h-auto rounded-xl border border-[#D4AF37]/30 shadow-lg" />
-              <h2 className={`text-xl font-serif ${goldColor}`}>{currentCard.question}</h2>
+              <img src={currentCard.image} alt="Карта" style={{ width: '220px', borderRadius: '15px', border: `1px solid ${goldColor}55` }} />
+              <h2 style={{ fontSize: '1.2rem', margin: 0 }}>{currentCard.question}</h2>
               <textarea 
-                className="w-full bg-black/60 text-white border border-[#D4AF37]/40 rounded-2xl p-4 h-24 outline-none focus:border-[#D4AF37] text-center resize-none"
+                style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.7)', border: `1px solid ${goldColor}88`, borderRadius: '20px', padding: '15px', color: 'white', textAlign: 'center', height: '80px', outline: 'none' }}
                 placeholder="Ваш ответ..."
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
               />
-              <button disabled={loading || !answer} onClick={handleNextStep} className={goldBtn}>
-                {loading ? "Анализ..." : "Продолжить"}
+              <button 
+                disabled={loading || !answer} 
+                onClick={handleNextStep} 
+                style={btnStyle}
+                onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.textShadow = '0 0 5px white'; }}
+                onMouseOut={(e) => { e.currentTarget.style.color = 'black'; e.currentTarget.style.textShadow = 'none'; }}
+              >
+                {loading ? "АНАЛИЗ..." : "ПРОДОЛЖИТЬ"}
               </button>
             </>
           )}
 
           {gameState === 'final' && (
             <>
-              <h2 className={`text-3xl font-serif ${goldColor}`}>Ваше заключение</h2>
-              <div className="bg-black/60 p-6 rounded-3xl border border-[#D4AF37]/20 text-white max-h-[40vh] overflow-y-auto">
-                <p className="whitespace-pre-wrap italic">{finalAnalysis}</p>
+              <h2 style={{ fontSize: '2rem' }}>Ваше заключение</h2>
+              <div style={{ backgroundColor: 'rgba(0,0,0,0.7)', padding: '20px', borderRadius: '30px', border: `1px solid ${goldColor}33`, color: 'white' }}>
+                <p style={{ fontStyle: 'italic' }}>{finalAnalysis}</p>
               </div>
-              <button onClick={() => window.location.reload()} className={goldBtn}>Начать заново</button>
+              <button onClick={() => window.location.reload()} style={btnStyle}>НАЧАТЬ ЗАНОВО</button>
             </>
           )}
 

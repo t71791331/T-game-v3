@@ -123,13 +123,26 @@ export default function Game() {
           {gameState === 'playing' && currentCard && (
             <>
               {/* Карта: растянута на 75% ширины, высота пропорциональна */}
-              <div style={{ width: elementWidth, display: 'flex', justifyContent: 'center' }}>
-                <img 
-                  src={currentCard.image} 
-                  alt="Карта" 
-                  style={{ width: '100%', height: 'auto', maxHeight: '40vh', objectFit: 'contain', borderRadius: '12px', border: `1px solid ${goldColor}44` }} 
-                />
-              </div>
+              <div style={{ 
+  width: elementWidth, // 75% от ширины окна (ваша рамка)
+  display: 'flex', 
+  justifyContent: 'center', 
+  marginBottom: '20px', // Отступ от вопроса
+  // Убираем border здесь, чтобы он был на самой картинке
+}}>
+  <img 
+    src={currentCard.image} 
+    alt="Карта" 
+    style={{ 
+      width: '100%', // Растягиваем ровно на ширину рамки
+      height: 'auto', // Высота подстраивается пропорционально (карта станет выше)
+      maxHeight: '55vh', // Увеличиваем макс. высоту, чтобы было куда расти
+      borderRadius: '15px', // Немного больше закругление для стиля
+      border: `2px solid ${goldColor}66`, // Делаем рамку более выраженной
+      boxShadow: '0 8px 30px rgba(0,0,0,0.8)' // Добавляем глубокую тень для объема
+    }} 
+  />
+</div>
 
               <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif', width: elementWidth }}>{currentCard.question}</h2>
               

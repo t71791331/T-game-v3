@@ -28,6 +28,7 @@ const CARDS = [
 export default function Game() {
   const [gameState, setGameState] = useState<'welcome' | 'playing' | 'final'>('welcome');
   const [currentCard, setCurrentCard] = useState<any>(null);
+  const [usedCardIds, setUsedCardIds] = useState<number[]>([]); // Следим за ID использованных карт
   const [answer, setAnswer] = useState('');
   const [history, setHistory] = useState<{question: string, answer: string, comment: string}[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,21 +39,36 @@ export default function Game() {
   const handleNextStep = async () => {
     if (!answer) return;
     setLoading(true);
+    
+    // Обновляем список использованных ID
+    const newUsedIds = [...usedCardIds, currentCard.id];
+    setUsedCardIds(newUsedIds);
+
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer, history, availableCards: CARDS.filter(c => !history.find(h => h.question === c.question)), isFinal: history.length === 4 }),
+        body: JSON.stringify({ 
+          answer, 
+          history, 
+          // Отправляем только те карты, которые ЕЩЕ НЕ были использованы
+          availableCards: CARDS.filter(c => !newUsedIds.includes(c.id)),
+          isFinal: history.length === 4 
+        }),
       });
       const data = await response.json();
       const updatedHistory = [...history, { question: currentCard.question, answer, comment: data.comment }];
       setHistory(updatedHistory);
+
       if (updatedHistory.length === 5) {
         setFinalAnalysis(data.comment);
         setGameState('final');
       } else {
-        const nextCardId = data.nextCardId || CARDS[Math.floor(Math.random() * CARDS.length)].id;
-        setCurrentCard(CARDS.find(c => c.id === nextCardId));
+        // Выбираем следующую карту из предложенных ИИ или случайную из оставшихся
+        const remainingCards = CARDS.filter(c => !newUsedIds.includes(c.id));
+        const nextCard = remainingCards.find(c => c.id === data.nextCardId) || remainingCards[Math.floor(Math.random() * remainingCards.length)];
+        
+        setCurrentCard(nextCard);
         setAnswer('');
       }
     } catch (e) { alert("Ошибка..."); }
@@ -64,7 +80,7 @@ export default function Game() {
     color: 'black',
     padding: '12px 30px',
     borderRadius: '20px',
-    fontWeight: 'bold',
+    fontWeight: 'bold' as 'bold',
     cursor: 'pointer',
     border: 'none',
     transition: '0.3s',
@@ -74,9 +90,65 @@ export default function Game() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor, overflow: 'hidden' }}>
-      
       <div style={{ 
         position: 'relative', 
         width: '90vw',
         maxWidth: '1200px',
-        aspectRatio: '16
+        aspectRatio: '16 / 9',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '2.5rem',
+        overflow: 'hidden',
+        boxShadow: '0 0 50px rgba(0,0,0,0.9), 0 0 30px rgba(212,175,55,0.05)'
+      }}>
+        <div style={{ 
+          position: 'absolute', 
+          inset: '-50%',
+          backgroundImage: "url('/bg.jpg')", 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center',
+          transform: 'rotate(90deg)',
+          zIndex: 0
+        }}></div>
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', zIndex: 1 }}></div>
+
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', width: '100%', padding: '20px', textAlign: 'center' }}>
+          {gameState === 'welcome' && (
+            <>
+              <h1 style={{ fontSize: '2.8rem', margin: '0', fontFamily: 'serif' }}>Добро пожаловать</h1>
+              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>Начать путь</button>
+            </>
+          )}
+
+          {gameState === 'playing' && currentCard && (
+            <>
+              <img src={currentCard.image} alt="Карта" style={{ width: '220px', borderRadius: '12px', border: `1px solid ${goldColor}44` }} />
+              <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif', maxWidth: '500px' }}>{currentCard.question}</h2>
+              <textarea 
+                style={{ width: '220px', backgroundColor: 'rgba(0,0,0,0.85)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '12px', color: 'white', textAlign: 'center', height: '100px', outline: 'none', resize: 'none' }}
+                placeholder="Ваш ответ..."
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+              />
+              <button disabled={loading || !answer} onClick={handleNextStep} style={{...btnStyle, width: '220px'}} onMouseOver={(e) => { e.currentTarget.style.color = 'white'; }} onMouseOut={(e) => { e.currentTarget.style.color = 'black'; }}>
+                {loading ? "Считываю..." : "Далее"}
+              </button>
+            </>
+          )}
+
+          {gameState === 'final' && (
+            <div style={{maxWidth: '700px'}}>
+              <h2 style={{ fontSize: '2.2rem', fontFamily: 'serif', marginBottom: '15px' }}>Ваше откровение</h2>
+              <div style={{ backgroundColor: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '25px', border: `1px solid ${goldColor}33`, color: 'white', maxHeight: '40vh', overflowY: 'auto' }}>
+                <p style={{ fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>{finalAnalysis}</p>
+              </div>
+              <button onClick={() => window.location.reload()} style={{...btnStyle, marginTop: '20px'}}>Начать заново</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

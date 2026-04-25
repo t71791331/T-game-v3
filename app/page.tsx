@@ -149,4 +149,49 @@ export default function Game() {
               <div style={{ width: elementWidth, display: 'flex', justifyContent: 'center' }}>
                 <img src={currentCard.image} alt="Карта" style={{ width: '100%', height: 'auto', maxHeight: '40vh', objectFit: 'contain', borderRadius: '12px', border: `1px solid ${goldColor}44` }} />
               </div>
-              <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif
+              <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif', width: elementWidth }}>{currentCard.question}</h2>
+              <textarea 
+                style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.8)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '10px', color: 'white', textAlign: 'center', height: '80px', outline: 'none', resize: 'none' }}
+                placeholder="Ваш ответ..." value={answer} onChange={(e) => setAnswer(e.target.value)}
+              />
+              <button disabled={loading || !answer} onClick={handleSendAnswer} style={btnStyle}>Отправить ответ</button>
+            </>
+          )}
+
+          {gameState === 'feedback' && (
+            <>
+              <h2 style={{ fontSize: '1.5rem', fontFamily: 'serif' }}>Мысли проводника</h2>
+              <div style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '20px', border: `1px solid ${goldColor}33`, color: 'white', fontStyle: 'italic' }}>
+                {currentComment}
+              </div>
+              <button onClick={handleContinue} style={btnStyle}>Продолжить</button>
+            </>
+          )}
+
+          {gameState === 'final' && (
+            <div className="custom-scroll" style={{ width: '95%', height: '85%', overflowY: 'auto', overflowX: 'hidden', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <h2 style={{ fontSize: '2.2rem', fontFamily: 'serif' }}>Ваш путь</h2>
+              
+              <div style={{ width: '85%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {history.map((step, i) => (
+                  <div key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', borderLeft: `4px solid ${goldColor}` }}>
+                    <p style={{ color: goldColor, fontSize: '0.85rem', fontWeight: 'bold' }}>ШАГ {i + 1}: {step.question}</p>
+                    <p style={{ color: 'white', marginBottom: '5px' }}>— {step.answer}</p>
+                    <p style={{ color: '#aaa', fontSize: '0.9rem', fontStyle: 'italic' }}>Анализ шага: {step.comment}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ width: '85%', backgroundColor: 'rgba(212,175,55,0.1)', padding: '25px', borderRadius: '20px', border: `1px solid ${goldColor}`, color: 'white', marginTop: '10px' }}>
+                <h3 style={{ color: goldColor, marginBottom: '10px', fontSize: '1.1rem' }}>ВАШЕ ОТКРОВЕНИЕ:</h3>
+                <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{finalAnalysis}</p>
+              </div>
+
+              <button onClick={() => window.location.reload()} style={btnStyle}>Начать заново</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

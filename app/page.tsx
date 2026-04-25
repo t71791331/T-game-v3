@@ -17,7 +17,7 @@ const CARDS = [
   { id: 12, question: "Какое маленькое действие сегодня принесет вам радость?", image: "/card12.png" },
   { id: 13, question: "За что вы можете поблагодарить свое тело сегодня?", image: "/card13.png" },
   { id: 14, question: "Что в вашем окружении тянет вас назад, а что вдохновляет?", image: "/card14.png" },
-  { id: 15, base: "Если бы вы были своим лучшим другом, какой совет вы бы себе дали?", image: "/card15.png" },
+  { id: 15, question: "Если бы вы были своим лучшим другом, какой совет вы бы себе дали?", image: "/card15.png" },
   { id: 16, question: "Какой талант вы зарыли в землю и почему?", image: "/card16.png" },
   { id: 17, question: "Что заставляет вас чувствовать себя по-настоящему живым?", image: "/card17.png" },
   { id: 18, question: "Какую маску вы носите чаще всего и что она скрывает?", image: "/card18.png" },
@@ -30,6 +30,7 @@ export default function Game() {
   const [currentCard, setCurrentCard] = useState<any>(null);
   const [usedCardIds, setUsedCardIds] = useState<number[]>([]);
   const [answer, setAnswer] = useState('');
+  const [welcomeQuery, setWelcomeQuery] = useState(''); // Запрос на входе
   const [history, setHistory] = useState<{question: string, answer: string, comment: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentComment, setCurrentComment] = useState('');
@@ -39,11 +40,36 @@ export default function Game() {
   const goldColor = "#D4AF37";
   const elementWidth = "75%"; 
 
+  const handleStartGame = async () => {
+    if (!welcomeQuery) return;
+    setLoading(true);
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          answer: welcomeQuery, 
+          history: [], 
+          availableCards: CARDS,
+          isFirstStep: true 
+        }),
+      });
+      const data = await response.json();
+      const firstCard = CARDS.find(c => c.id === data.nextCardId) || CARDS[Math.floor(Math.random()*CARDS.length)];
+      
+      setCurrentCard(firstCard);
+      setGameState('playing');
+    } catch (e) { alert("Ошибка инициализации..."); }
+    setLoading(false);
+  };
+
   const handleSendAnswer = async () => {
     if (!answer) return;
     setLoading(true);
     const newUsedIds = [...usedCardIds, currentCard.id];
     setUsedCardIds(newUsedIds);
+
+    const isLastCard = history.length === 4;
 
     try {
       const response = await fetch('/api/chat', {
@@ -51,17 +77,17 @@ export default function Game() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           answer, 
-          history, 
+          history: [...history, { question: currentCard.question, answer }], 
           availableCards: CARDS.filter(c => !newUsedIds.includes(c.id)),
-          isFinal: history.length === 4 
+          isFinal: isLastCard 
         }),
       });
       const data = await response.json();
       
       setCurrentComment(data.comment);
       
-      if (history.length === 4) {
-        setFinalAnalysis(data.comment);
+      if (isLastCard) {
+        setFinalAnalysis(data.fullAnalysis); // ИИ пришлет и короткий коммент, и полный анализ
       } else {
         const remainingCards = CARDS.filter(c => !newUsedIds.includes(c.id));
         const next = remainingCards.find(c => c.id === data.nextCardId) || remainingCards[0];
@@ -84,7 +110,6 @@ export default function Game() {
     }
   };
 
-  // Стиль кнопок: размер по тексту, текст с большой буквы
   const btnStyle = {
     backgroundColor: goldColor,
     color: 'black',
@@ -99,13 +124,7 @@ export default function Game() {
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor, overflow: 'hidden' }}>
-      
-      <div style={{ 
-        position: 'relative', width: '90vw', maxWidth: '1200px', aspectRatio: '16 / 9',
-        display: 'flex', flexDirection: 'column' as 'column', alignItems: 'center', justifyContent: 'center',
-        borderRadius: '2.5rem', overflow: 'hidden', boxShadow: '0 0 50px rgba(0,0,0,0.9)'
-      }}>
-        
+      <div style={{ position: 'relative', width: '90vw', maxWidth: '1200px', aspectRatio: '16 / 9', display: 'flex', flexDirection: 'column' as 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '2.5rem', overflow: 'hidden', boxShadow: '0 0 50px rgba(0,0,0,0.9)' }}>
         <div style={{ position: 'absolute', inset: '-50%', backgroundImage: "url('/bg.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', transform: 'rotate(90deg)', zIndex: 0 }}></div>
         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1 }}></div>
 
@@ -113,44 +132,28 @@ export default function Game() {
           
           {gameState === 'welcome' && (
             <>
-              <h1 style={{ fontSize: '2.8rem', fontFamily: 'serif' }}>Добро пожаловать в игру!</h1>
-              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>
-                Начать
+              <h1 style={{ fontSize: '2.5rem', fontFamily: 'serif' }}>Добро пожаловать в игру!</h1>
+              <p style={{ fontSize: '1.2rem', marginBottom: '5px' }}>Что привело тебя сюда?</p>
+              <textarea 
+                style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.8)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '10px', color: 'white', textAlign: 'center', height: '80px', outline: 'none', resize: 'none' }}
+                placeholder="Опишите ваш запрос или состояние..." value={welcomeQuery} onChange={(e) => setWelcomeQuery(e.target.value)}
+              />
+              <button disabled={loading || !welcomeQuery} onClick={handleStartGame} style={btnStyle}>
+                {loading ? "Выбираю карту..." : "Начать"}
               </button>
             </>
           )}
 
           {gameState === 'playing' && currentCard && (
             <>
-              {/* Карта: растянута на 75% ширины, высота пропорциональна */}
-              <div style={{ 
-  width: elementWidth, // 75% от ширины окна (ваша рамка)
-  display: 'flex', 
-  justifyContent: 'center', 
-  marginBottom: '20px', // Отступ от вопроса
-  // Убираем border здесь, чтобы он был на самой картинке
-}}>
-  <img 
-    src={currentCard.image} 
-    alt="Карта" 
-    style={{ 
-      width: '100%', // Растягиваем ровно на ширину рамки
-      height: 'auto', // Высота подстраивается пропорционально (карта станет выше)
-      maxHeight: '55vh', // Увеличиваем макс. высоту, чтобы было куда расти
-      borderRadius: '15px', // Немного больше закругление для стиля
-      border: `2px solid ${goldColor}66`, // Делаем рамку более выраженной
-      boxShadow: '0 8px 30px rgba(0,0,0,0.8)' // Добавляем глубокую тень для объема
-    }} 
-  />
-</div>
-
+              <div style={{ width: elementWidth, display: 'flex', justifyContent: 'center' }}>
+                <img src={currentCard.image} alt="Карта" style={{ width: '100%', height: 'auto', maxHeight: '40vh', objectFit: 'contain', borderRadius: '12px', border: `1px solid ${goldColor}44` }} />
+              </div>
               <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif', width: elementWidth }}>{currentCard.question}</h2>
-              
               <textarea 
                 style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.8)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '10px', color: 'white', textAlign: 'center', height: '80px', outline: 'none', resize: 'none' }}
                 placeholder="Ваш ответ..." value={answer} onChange={(e) => setAnswer(e.target.value)}
               />
-              
               <button disabled={loading || !answer} onClick={handleSendAnswer} style={btnStyle}>
                 {loading ? "Считываю..." : "Отправить ответ"}
               </button>
@@ -170,26 +173,22 @@ export default function Game() {
           {gameState === 'final' && (
             <div style={{ width: '90%', height: '85%', overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
               <h2 style={{ fontSize: '2.2rem', fontFamily: 'serif' }}>Ваше откровение</h2>
-              
               <div style={{ width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {history.map((step, i) => (
                   <div key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', borderLeft: `4px solid ${goldColor}` }}>
                     <p style={{ color: goldColor, fontSize: '0.85rem', fontWeight: 'bold' }}>ШАГ {i + 1}: {step.question}</p>
                     <p style={{ color: 'white', marginBottom: '5px' }}>— {step.answer}</p>
-                    <p style={{ color: '#aaa', fontSize: '0.9rem', fontStyle: 'italic' }}>Проводник: {step.comment}</p>
+                    <p style={{ color: '#aaa', fontSize: '0.9rem', fontStyle: 'italic' }}>Анализ шага: {step.comment}</p>
                   </div>
                 ))}
               </div>
-
               <div style={{ width: '100%', backgroundColor: 'rgba(212,175,55,0.1)', padding: '25px', borderRadius: '20px', border: `1px solid ${goldColor}`, color: 'white', marginTop: '10px' }}>
-                <h3 style={{ color: goldColor, marginBottom: '10px', fontSize: '1.1rem' }}>ИТОГОВЫЙ АНАЛИЗ:</h3>
+                <h3 style={{ color: goldColor, marginBottom: '10px', fontSize: '1.1rem' }}>ИТОГОВЫЙ ПРИЕМ ПСИХОЛОГА:</h3>
                 <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{finalAnalysis}</p>
               </div>
-
               <button onClick={() => window.location.reload()} style={btnStyle}>Начать заново</button>
             </div>
           )}
-
         </div>
       </div>
     </div>

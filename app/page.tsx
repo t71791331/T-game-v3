@@ -17,7 +17,7 @@ const CARDS = [
   { id: 12, question: "Какое маленькое действие сегодня принесет вам радость?", image: "/card12.png" },
   { id: 13, question: "За что вы можете поблагодарить свое тело сегодня?", image: "/card13.png" },
   { id: 14, question: "Что в вашем окружении тянет вас назад, а что вдохновляет?", image: "/card14.png" },
-  { id: 15, question: "Если бы вы были своим лучшим другом, какой совет вы бы себе дали?", image: "/card15.png" },
+  { id: 15, base: "Если бы вы были своим лучшим другом, какой совет вы бы себе дали?", image: "/card15.png" },
   { id: 16, question: "Какой талант вы зарыли в землю и почему?", image: "/card16.png" },
   { id: 17, question: "Что заставляет вас чувствовать себя по-настоящему живым?", image: "/card17.png" },
   { id: 18, question: "Какую маску вы носите чаще всего и что она скрывает?", image: "/card18.png" },
@@ -37,7 +37,7 @@ export default function Game() {
   const [nextCardData, setNextCardData] = useState<any>(null);
 
   const goldColor = "#D4AF37";
-  const elementWidth = "75%"; // 75% от ширины внутреннего окна
+  const elementWidth = "75%"; 
 
   const handleSendAnswer = async () => {
     if (!answer) return;
@@ -61,7 +61,7 @@ export default function Game() {
       setCurrentComment(data.comment);
       
       if (history.length === 4) {
-        setFinalAnalysis(data.comment); // В финале коммент и есть анализ
+        setFinalAnalysis(data.comment);
       } else {
         const remainingCards = CARDS.filter(c => !newUsedIds.includes(c.id));
         const next = remainingCards.find(c => c.id === data.nextCardId) || remainingCards[0];
@@ -84,17 +84,17 @@ export default function Game() {
     }
   };
 
+  // Стиль кнопок: размер по тексту, текст с большой буквы
   const btnStyle = {
     backgroundColor: goldColor,
     color: 'black',
-    padding: '12px 30px',
+    padding: '12px 35px',
     borderRadius: '20px',
     fontWeight: 'bold' as 'bold',
     cursor: 'pointer',
     border: 'none',
-    width: elementWidth,
-    textTransform: 'uppercase' as 'uppercase',
-    transition: '0.3s'
+    transition: '0.3s',
+    display: 'inline-block'
   };
 
   return (
@@ -113,19 +113,31 @@ export default function Game() {
           
           {gameState === 'welcome' && (
             <>
-              <h1 style={{ fontSize: '2.5rem', fontFamily: 'serif' }}>Трансформационный Путь</h1>
-              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>Начать</button>
+              <h1 style={{ fontSize: '2.8rem', fontFamily: 'serif' }}>Добро пожаловать в игру!</h1>
+              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>
+                Начать
+              </button>
             </>
           )}
 
           {gameState === 'playing' && currentCard && (
             <>
-              <img src={currentCard.image} alt="Карта" style={{ width: elementWidth, maxHeight: '35%', objectFit: 'contain', borderRadius: '12px', border: `1px solid ${goldColor}44` }} />
-              <h2 style={{ fontSize: '1.1rem', margin: '5px 0', fontFamily: 'serif', width: elementWidth }}>{currentCard.question}</h2>
+              {/* Карта: растянута на 75% ширины, высота пропорциональна */}
+              <div style={{ width: elementWidth, display: 'flex', justifyContent: 'center' }}>
+                <img 
+                  src={currentCard.image} 
+                  alt="Карта" 
+                  style={{ width: '100%', height: 'auto', maxHeight: '40vh', objectFit: 'contain', borderRadius: '12px', border: `1px solid ${goldColor}44` }} 
+                />
+              </div>
+
+              <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif', width: elementWidth }}>{currentCard.question}</h2>
+              
               <textarea 
                 style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.8)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '10px', color: 'white', textAlign: 'center', height: '80px', outline: 'none', resize: 'none' }}
                 placeholder="Ваш ответ..." value={answer} onChange={(e) => setAnswer(e.target.value)}
               />
+              
               <button disabled={loading || !answer} onClick={handleSendAnswer} style={btnStyle}>
                 {loading ? "Считываю..." : "Отправить ответ"}
               </button>
@@ -143,32 +155,9 @@ export default function Game() {
           )}
 
           {gameState === 'final' && (
-            <div style={{ width: '90%', height: '85%', overflowY: 'auto', paddingRight: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
-              <h2 style={{ fontSize: '2rem', fontFamily: 'serif' }}>Ваш Путь Окончен</h2>
+            <div style={{ width: '90%', height: '85%', overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <h2 style={{ fontSize: '2.2rem', fontFamily: 'serif' }}>Ваше откровение</h2>
               
-              {/* История шагов */}
               <div style={{ width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 {history.map((step, i) => (
-                  <div key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', borderLeft: `4px solid ${goldColor}` }}>
-                    <p style={{ color: goldColor, fontSize: '0.8rem', fontWeight: 'bold' }}>ШАГ {i + 1}: {step.question}</p>
-                    <p style={{ color: 'white', marginBottom: '5px' }}>— {step.answer}</p>
-                    <p style={{ color: '#aaa', fontSize: '0.9rem', fontStyle: 'italic' }}>Проводник: {step.comment}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Финальный анализ */}
-              <div style={{ width: '100%', backgroundColor: 'rgba(212,175,55,0.1)', padding: '25px', borderRadius: '20px', border: `1px solid ${goldColor}`, color: 'white', marginTop: '20px' }}>
-                <h3 style={{ color: goldColor, marginBottom: '10px' }}>КОМПЛЕКСНЫЙ АНАЛИЗ И РЕКОМЕНДАЦИИ:</h3>
-                <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{finalAnalysis}</p>
-              </div>
-
-              <button onClick={() => window.location.reload()} style={{...btnStyle, marginBottom: '20px'}}>Начать новую жизнь</button>
-            </div>
-          )}
-
-        </div>
-      </div>
-    </div>
-  );
-}
+                  <div key={i} style={{ backgroundColor: 'rgba(255

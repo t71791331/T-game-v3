@@ -67,71 +67,16 @@ export default function Game() {
     fontWeight: 'bold',
     cursor: 'pointer',
     border: 'none',
-    transition: '0.3s'
+    transition: '0.3s',
+    textTransform: 'uppercase' as 'uppercase',
+    letterSpacing: '1px'
   };
 
   return (
-    <div style={{ minHeight: '100-vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor }}>
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor, overflow: 'hidden' }}>
+      
       <div style={{ 
         position: 'relative', 
-        width: '100%', 
-        maxWidth: '1000px', 
-        aspectRatio: '16/9', 
-        backgroundImage: "url('/bg.jpg')", 
-        backgroundSize: 'cover', 
-        backgroundPosition: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)' }}></div>
-
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', width: '100%', maxWidth: '600px', padding: '20px', textAlign: 'center' }}>
-          
-          {gameState === 'welcome' && (
-            <>
-              <h1 style={{ fontSize: '2.5rem', margin: 0 }}>Добро пожаловать в игру!</h1>
-              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>
-                ВЫБРАТЬ КАРТУ
-              </button>
-            </>
-          )}
-
-          {gameState === 'playing' && currentCard && (
-            <>
-              <img src={currentCard.image} alt="Карта" style={{ width: '220px', borderRadius: '15px', border: `1px solid ${goldColor}55` }} />
-              <h2 style={{ fontSize: '1.2rem', margin: 0 }}>{currentCard.question}</h2>
-              <textarea 
-                style={{ width: '100%', backgroundColor: 'rgba(0,0,0,0.7)', border: `1px solid ${goldColor}88`, borderRadius: '20px', padding: '15px', color: 'white', textAlign: 'center', height: '80px', outline: 'none' }}
-                placeholder="Ваш ответ..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-              />
-              <button 
-                disabled={loading || !answer} 
-                onClick={handleNextStep} 
-                style={btnStyle}
-                onMouseOver={(e) => { e.currentTarget.style.color = 'white'; e.currentTarget.style.textShadow = '0 0 5px white'; }}
-                onMouseOut={(e) => { e.currentTarget.style.color = 'black'; e.currentTarget.style.textShadow = 'none'; }}
-              >
-                {loading ? "АНАЛИЗ..." : "ПРОДОЛЖИТЬ"}
-              </button>
-            </>
-          )}
-
-          {gameState === 'final' && (
-            <>
-              <h2 style={{ fontSize: '2rem' }}>Ваше заключение</h2>
-              <div style={{ backgroundColor: 'rgba(0,0,0,0.7)', padding: '20px', borderRadius: '30px', border: `1px solid ${goldColor}33`, color: 'white' }}>
-                <p style={{ fontStyle: 'italic' }}>{finalAnalysis}</p>
-              </div>
-              <button onClick={() => window.location.reload()} style={btnStyle}>НАЧАТЬ ЗАНОВО</button>
-            </>
-          )}
-
-        </div>
-      </div>
-    </div>
-  );
-}
+        width: '90vw',
+        maxWidth: '1200px',
+        aspectRatio: '16

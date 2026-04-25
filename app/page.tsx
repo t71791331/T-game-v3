@@ -26,21 +26,22 @@ const CARDS = [
 ];
 
 export default function Game() {
-  const [gameState, setGameState] = useState<'welcome' | 'playing' | 'final'>('welcome');
+  const [gameState, setGameState] = useState<'welcome' | 'playing' | 'feedback' | 'final'>('welcome');
   const [currentCard, setCurrentCard] = useState<any>(null);
-  const [usedCardIds, setUsedCardIds] = useState<number[]>([]); // Следим за ID использованных карт
+  const [usedCardIds, setUsedCardIds] = useState<number[]>([]);
   const [answer, setAnswer] = useState('');
   const [history, setHistory] = useState<{question: string, answer: string, comment: string}[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentComment, setCurrentComment] = useState('');
   const [finalAnalysis, setFinalAnalysis] = useState('');
+  const [nextCardData, setNextCardData] = useState<any>(null);
 
   const goldColor = "#D4AF37";
+  const elementWidth = "75%"; // 75% от ширины внутреннего окна
 
-  const handleNextStep = async () => {
+  const handleSendAnswer = async () => {
     if (!answer) return;
     setLoading(true);
-    
-    // Обновляем список использованных ID
     const newUsedIds = [...usedCardIds, currentCard.id];
     setUsedCardIds(newUsedIds);
 
@@ -51,28 +52,36 @@ export default function Game() {
         body: JSON.stringify({ 
           answer, 
           history, 
-          // Отправляем только те карты, которые ЕЩЕ НЕ были использованы
           availableCards: CARDS.filter(c => !newUsedIds.includes(c.id)),
           isFinal: history.length === 4 
         }),
       });
       const data = await response.json();
-      const updatedHistory = [...history, { question: currentCard.question, answer, comment: data.comment }];
-      setHistory(updatedHistory);
-
-      if (updatedHistory.length === 5) {
-        setFinalAnalysis(data.comment);
-        setGameState('final');
+      
+      setCurrentComment(data.comment);
+      
+      if (history.length === 4) {
+        setFinalAnalysis(data.comment); // В финале коммент и есть анализ
       } else {
-        // Выбираем следующую карту из предложенных ИИ или случайную из оставшихся
         const remainingCards = CARDS.filter(c => !newUsedIds.includes(c.id));
-        const nextCard = remainingCards.find(c => c.id === data.nextCardId) || remainingCards[Math.floor(Math.random() * remainingCards.length)];
-        
-        setCurrentCard(nextCard);
-        setAnswer('');
+        const next = remainingCards.find(c => c.id === data.nextCardId) || remainingCards[0];
+        setNextCardData(next);
       }
-    } catch (e) { alert("Ошибка..."); }
+
+      setHistory([...history, { question: currentCard.question, answer, comment: data.comment }]);
+      setGameState('feedback');
+    } catch (e) { alert("Ошибка проводника..."); }
     setLoading(false);
+  };
+
+  const handleContinue = () => {
+    if (history.length === 5) {
+      setGameState('final');
+    } else {
+      setCurrentCard(nextCardData);
+      setAnswer('');
+      setGameState('playing');
+    }
   };
 
   const btnStyle = {
@@ -83,70 +92,81 @@ export default function Game() {
     fontWeight: 'bold' as 'bold',
     cursor: 'pointer',
     border: 'none',
-    transition: '0.3s',
+    width: elementWidth,
     textTransform: 'uppercase' as 'uppercase',
-    letterSpacing: '1px'
+    transition: '0.3s'
   };
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor, overflow: 'hidden' }}>
+      
       <div style={{ 
-        position: 'relative', 
-        width: '90vw',
-        maxWidth: '1200px',
-        aspectRatio: '16 / 9',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '2.5rem',
-        overflow: 'hidden',
-        boxShadow: '0 0 50px rgba(0,0,0,0.9), 0 0 30px rgba(212,175,55,0.05)'
+        position: 'relative', width: '90vw', maxWidth: '1200px', aspectRatio: '16 / 9',
+        display: 'flex', flexDirection: 'column' as 'column', alignItems: 'center', justifyContent: 'center',
+        borderRadius: '2.5rem', overflow: 'hidden', boxShadow: '0 0 50px rgba(0,0,0,0.9)'
       }}>
-        <div style={{ 
-          position: 'absolute', 
-          inset: '-50%',
-          backgroundImage: "url('/bg.jpg')", 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center',
-          transform: 'rotate(90deg)',
-          zIndex: 0
-        }}></div>
-        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', zIndex: 1 }}></div>
+        
+        <div style={{ position: 'absolute', inset: '-50%', backgroundImage: "url('/bg.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', transform: 'rotate(90deg)', zIndex: 0 }}></div>
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1 }}></div>
 
-        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px', width: '100%', padding: '20px', textAlign: 'center' }}>
+        <div style={{ position: 'relative', zIndex: 10, display: 'flex', flexDirection: 'column' as 'column', alignItems: 'center', gap: '15px', width: '100%', textAlign: 'center', height: '100%', justifyContent: 'center' }}>
+          
           {gameState === 'welcome' && (
             <>
-              <h1 style={{ fontSize: '2.8rem', margin: '0', fontFamily: 'serif' }}>Добро пожаловать</h1>
-              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>Начать путь</button>
+              <h1 style={{ fontSize: '2.5rem', fontFamily: 'serif' }}>Трансформационный Путь</h1>
+              <button onClick={() => { setGameState('playing'); setCurrentCard(CARDS[Math.floor(Math.random()*CARDS.length)]); }} style={btnStyle}>Начать</button>
             </>
           )}
 
           {gameState === 'playing' && currentCard && (
             <>
-              <img src={currentCard.image} alt="Карта" style={{ width: '220px', borderRadius: '12px', border: `1px solid ${goldColor}44` }} />
-              <h2 style={{ fontSize: '1.2rem', margin: '5px 0', fontFamily: 'serif', maxWidth: '500px' }}>{currentCard.question}</h2>
+              <img src={currentCard.image} alt="Карта" style={{ width: elementWidth, maxHeight: '35%', objectFit: 'contain', borderRadius: '12px', border: `1px solid ${goldColor}44` }} />
+              <h2 style={{ fontSize: '1.1rem', margin: '5px 0', fontFamily: 'serif', width: elementWidth }}>{currentCard.question}</h2>
               <textarea 
-                style={{ width: '220px', backgroundColor: 'rgba(0,0,0,0.85)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '12px', color: 'white', textAlign: 'center', height: '100px', outline: 'none', resize: 'none' }}
-                placeholder="Ваш ответ..."
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
+                style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.8)', border: `1px solid ${goldColor}77`, borderRadius: '15px', padding: '10px', color: 'white', textAlign: 'center', height: '80px', outline: 'none', resize: 'none' }}
+                placeholder="Ваш ответ..." value={answer} onChange={(e) => setAnswer(e.target.value)}
               />
-              <button disabled={loading || !answer} onClick={handleNextStep} style={{...btnStyle, width: '220px'}} onMouseOver={(e) => { e.currentTarget.style.color = 'white'; }} onMouseOut={(e) => { e.currentTarget.style.color = 'black'; }}>
-                {loading ? "Считываю..." : "Далее"}
+              <button disabled={loading || !answer} onClick={handleSendAnswer} style={btnStyle}>
+                {loading ? "Считываю..." : "Отправить ответ"}
               </button>
             </>
           )}
 
-          {gameState === 'final' && (
-            <div style={{maxWidth: '700px'}}>
-              <h2 style={{ fontSize: '2.2rem', fontFamily: 'serif', marginBottom: '15px' }}>Ваше откровение</h2>
-              <div style={{ backgroundColor: 'rgba(0,0,0,0.8)', padding: '20px', borderRadius: '25px', border: `1px solid ${goldColor}33`, color: 'white', maxHeight: '40vh', overflowY: 'auto' }}>
-                <p style={{ fontStyle: 'italic', whiteSpace: 'pre-wrap' }}>{finalAnalysis}</p>
+          {gameState === 'feedback' && (
+            <>
+              <h2 style={{ fontSize: '1.5rem', fontFamily: 'serif' }}>Мысли проводника</h2>
+              <div style={{ width: elementWidth, backgroundColor: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '20px', border: `1px solid ${goldColor}33`, color: 'white', fontStyle: 'italic' }}>
+                {currentComment}
               </div>
-              <button onClick={() => window.location.reload()} style={{...btnStyle, marginTop: '20px'}}>Начать заново</button>
+              <button onClick={handleContinue} style={btnStyle}>Продолжить</button>
+            </>
+          )}
+
+          {gameState === 'final' && (
+            <div style={{ width: '90%', height: '85%', overflowY: 'auto', paddingRight: '10px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
+              <h2 style={{ fontSize: '2rem', fontFamily: 'serif' }}>Ваш Путь Окончен</h2>
+              
+              {/* История шагов */}
+              <div style={{ width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                {history.map((step, i) => (
+                  <div key={i} style={{ backgroundColor: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', borderLeft: `4px solid ${goldColor}` }}>
+                    <p style={{ color: goldColor, fontSize: '0.8rem', fontWeight: 'bold' }}>ШАГ {i + 1}: {step.question}</p>
+                    <p style={{ color: 'white', marginBottom: '5px' }}>— {step.answer}</p>
+                    <p style={{ color: '#aaa', fontSize: '0.9rem', fontStyle: 'italic' }}>Проводник: {step.comment}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Финальный анализ */}
+              <div style={{ width: '100%', backgroundColor: 'rgba(212,175,55,0.1)', padding: '25px', borderRadius: '20px', border: `1px solid ${goldColor}`, color: 'white', marginTop: '20px' }}>
+                <h3 style={{ color: goldColor, marginBottom: '10px' }}>КОМПЛЕКСНЫЙ АНАЛИЗ И РЕКОМЕНДАЦИИ:</h3>
+                <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{finalAnalysis}</p>
+              </div>
+
+              <button onClick={() => window.location.reload()} style={{...btnStyle, marginBottom: '20px'}}>Начать новую жизнь</button>
             </div>
           )}
+
         </div>
       </div>
     </div>

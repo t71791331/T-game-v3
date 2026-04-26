@@ -126,7 +126,7 @@ export default function Game() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'black', margin: 0, color: goldColor, overflow: 'hidden' }}>
       <style>{scrollbarStyles}</style>
-      <div style={{ position: 'relative', width: '90vw', maxWidth: '1200px', aspectRatio: '16 / 9', display: 'flex', flexDirection: 'column' as 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '2.5rem', overflow: 'hidden', boxShadow: '0 0 50px rgba(0,0,0,0.9)' }}>
+      <div style={{ position: 'relative', width: '95vw', maxWidth: '1100px', minHeight:'85vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderRadius: '2.5rem', overflow: 'hidden', boxShadow: '0 0 50px rgba(0,0,0,0.9)' }}>
         <div style={{ position: 'absolute', inset: '-50%', backgroundImage: "url('/bg.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', transform: 'rotate(90deg)', zIndex: 0 }}></div>
         <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', zIndex: 1 }}></div>
 
